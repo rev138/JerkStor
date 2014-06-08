@@ -1,52 +1,99 @@
 package org.hzsogood.jerkstor.controller;
 
+import com.google.gson.Gson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import com.mongodb.gridfs.GridFSFile;
 import org.hzsogood.jerkstor.config.SpringMongoConfig;
-import org.hzsogood.jerkstor.model.FileUpload;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.SimpleFormController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.Hashtable;
 
+@Controller
+public class FileUploadController {
 
-public class FileUploadController extends SimpleFormController{
-
-    public FileUploadController(){
-        setCommandClass(FileUpload.class);
-        setCommandName("fileUploadForm");
+    @RequestMapping(value="/fileupload", method=RequestMethod.GET)
+    public @ResponseBody String provideUploadInfo() {
+        return "You can upload a file by posting to this same URL.";
     }
 
-    @Override
-    protected ModelAndView onSubmit(HttpServletRequest request,
-                                    HttpServletResponse response, Object command, BindException errors)
-            throws Exception {
+    @RequestMapping(value = "/fileupload", method = RequestMethod.POST)
+    @ResponseBody
+    public String handleFileUpload(@RequestParam("name") String name, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath) {
 
-        FileUpload file = (FileUpload)command;
+        String fileName = "";
 
-        MultipartFile multipartFile = file.getFile();
+        if (!file.isEmpty()) {
+            try {
+                fileName = file.getOriginalFilename();
 
-        String fileName="";
+                ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
+                GridFsOperations gridOperations = (GridFsOperations) ctx.getBean("gridFsTemplate");
 
-        if(multipartFile!=null){
-            fileName = multipartFile.getOriginalFilename();
-            //do whatever you want
+                DBObject metaData = new BasicDBObject();
+                metaData.put( "path", filePath );
 
-            ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
-            GridFsOperations gridOperations = (GridFsOperations) ctx.getBean("gridFsTemplate");
+                GridFSFile resultFile = gridOperations.store(file.getInputStream(), fileName, file.getContentType(), metaData);
 
-            DBObject metaData = new BasicDBObject();
+                Hashtable result = new Hashtable();
+                result.put( "id", resultFile.getId().toString() );
 
-            gridOperations.store( multipartFile.getInputStream(), multipartFile.getOriginalFilename(), multipartFile.getContentType(), metaData);
+                Gson gson = new Gson();
 
+                return gson.toJson( result );
+
+            } catch (Exception e) {
+                return "You failed to upload " + name + " => " + e.getMessage();
+            }
+        } else {
+            return "You failed to upload " + name + " because the file was empty.";
         }
-
-        return new ModelAndView("FileUploadSuccess","fileName",fileName);
     }
 }
+
+//import org.springframework.web.servlet.mvc.SimpleFormController;
+//@RequestMapping( "/fileupload" )
+//public class FileUploadController extends SimpleFormController{
+//
+//    public FileUploadController(){
+//        setCommandClass(FileUpload.class);
+//        setCommandName("fileUploadForm");
+//    }
+//
+//
+//    @Override
+//    protected ModelAndView onSubmit(HttpServletRequest request,
+//                                    HttpServletResponse response, Object command, BindException errors)
+//            throws Exception {
+//
+//        FileUpload file = (FileUpload)command;
+//
+//        MultipartFile multipartFile = file.getFile();
+//
+//        String fileName="";
+//
+//        if(multipartFile!=null){
+//            fileName = multipartFile.getOriginalFilename();
+//            //do whatever you want
+//
+//            ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
+//            GridFsOperations gridOperations = (GridFsOperations) ctx.getBean("gridFsTemplate");
+//
+//            DBObject metaData = new BasicDBObject();
+//            metaData.put( "path", "/foo/placeholder");
+//
+//            gridOperations.store( multipartFile.getInputStream(), fileName, multipartFile.getContentType(), metaData);
+//
+//        }
+//
+//        return new ModelAndView("FileUploadSuccess","fileName",fileName);
+//    }
+//}
