@@ -1,13 +1,7 @@
 package org.hzsogood.jerkstor.controller;
 
 import com.google.gson.Gson;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.gridfs.GridFSFile;
-import org.hzsogood.jerkstor.config.SpringMongoConfig;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.data.mongodb.gridfs.GridFsOperations;
+import org.hzsogood.jerkstor.service.GridFSServiceImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -20,31 +14,25 @@ import java.util.Hashtable;
 @Controller
 public class FileUploadController {
 
-    @RequestMapping(value="/fileupload", method=RequestMethod.GET)
+    @RequestMapping(value="/file/upload", method=RequestMethod.GET)
     public @ResponseBody String provideUploadInfo() {
         return "You can upload a file by posting to this same URL.";
     }
 
-    @RequestMapping(value = "/fileupload", method = RequestMethod.POST)
+    @RequestMapping(value = "/file/upload", method = RequestMethod.POST)
     @ResponseBody
     public String handleFileUpload(@RequestParam("name") String name, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath) {
-
-        String fileName = "";
+        GridFSServiceImpl grid = new GridFSServiceImpl();
 
         if (!file.isEmpty()) {
             try {
-                fileName = file.getOriginalFilename();
-
-                ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
-                GridFsOperations gridOperations = (GridFsOperations) ctx.getBean("gridFsTemplate");
-
-                DBObject metaData = new BasicDBObject();
+                Hashtable<String, String> metaData = new Hashtable<String, String>();
                 metaData.put( "path", filePath );
 
-                GridFSFile resultFile = gridOperations.store(file.getInputStream(), fileName, file.getContentType(), metaData);
+                String id = grid.store( file, metaData );
 
-                Hashtable result = new Hashtable();
-                result.put( "id", resultFile.getId().toString() );
+                Hashtable<String, String> result = new Hashtable<String, String>();
+                result.put( "id", id );
 
                 Gson gson = new Gson();
 
@@ -58,42 +46,3 @@ public class FileUploadController {
         }
     }
 }
-
-//import org.springframework.web.servlet.mvc.SimpleFormController;
-//@RequestMapping( "/fileupload" )
-//public class FileUploadController extends SimpleFormController{
-//
-//    public FileUploadController(){
-//        setCommandClass(FileUpload.class);
-//        setCommandName("fileUploadForm");
-//    }
-//
-//
-//    @Override
-//    protected ModelAndView onSubmit(HttpServletRequest request,
-//                                    HttpServletResponse response, Object command, BindException errors)
-//            throws Exception {
-//
-//        FileUpload file = (FileUpload)command;
-//
-//        MultipartFile multipartFile = file.getFile();
-//
-//        String fileName="";
-//
-//        if(multipartFile!=null){
-//            fileName = multipartFile.getOriginalFilename();
-//            //do whatever you want
-//
-//            ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
-//            GridFsOperations gridOperations = (GridFsOperations) ctx.getBean("gridFsTemplate");
-//
-//            DBObject metaData = new BasicDBObject();
-//            metaData.put( "path", "/foo/placeholder");
-//
-//            gridOperations.store( multipartFile.getInputStream(), fileName, multipartFile.getContentType(), metaData);
-//
-//        }
-//
-//        return new ModelAndView("FileUploadSuccess","fileName",fileName);
-//    }
-//}
