@@ -29,7 +29,7 @@ public class FileUploadController {
                 Hashtable<String, String> metaData = new Hashtable<String, String>();
                 metaData.put( "path", filePath );
 
-                String id = grid.store( file, metaData );
+                String id = grid.store( file, name, metaData );
 
                 Hashtable<String, String> result = new Hashtable<String, String>();
                 result.put( "id", id );
