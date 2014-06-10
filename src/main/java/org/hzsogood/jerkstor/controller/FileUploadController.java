@@ -1,7 +1,8 @@
 package org.hzsogood.jerkstor.controller;
 
 import com.google.gson.Gson;
-import org.hzsogood.jerkstor.service.GridFSServiceImpl;
+import org.hzsogood.jerkstor.service.GridFSService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -13,6 +14,8 @@ import java.util.Hashtable;
 
 @Controller
 public class FileUploadController {
+    @Autowired
+    private GridFSService gridFSService;
 
     @RequestMapping(value="/file/upload", method=RequestMethod.GET)
     public @ResponseBody String provideUploadInfo() {
@@ -22,14 +25,13 @@ public class FileUploadController {
     @RequestMapping(value = "/file/upload", method = RequestMethod.POST)
     @ResponseBody
     public String handleFileUpload(@RequestParam("name") String name, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath) {
-        GridFSServiceImpl grid = new GridFSServiceImpl();
 
         if (!file.isEmpty()) {
             try {
                 Hashtable<String, String> metaData = new Hashtable<String, String>();
                 metaData.put( "path", filePath );
 
-                String id = grid.store( file, name, metaData );
+                String id = gridFSService.store( file, name, metaData );
 
                 Hashtable<String, String> result = new Hashtable<String, String>();
                 result.put( "id", id );

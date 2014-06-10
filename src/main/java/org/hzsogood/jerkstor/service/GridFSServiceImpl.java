@@ -34,6 +34,8 @@ public final class GridFSServiceImpl implements GridFSService {
 
         // Convert the metaData HashMap to a DBObject
         Set<String> keys = metaData.keySet();
+
+        // TODO: drop '_class' key
         for (String key : keys) {
             metaDataObj.put(key, metaData.get(key));
         }
