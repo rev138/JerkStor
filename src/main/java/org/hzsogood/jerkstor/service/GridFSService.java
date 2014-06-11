@@ -22,4 +22,10 @@ public interface GridFSService {
     GridFSDBFile findOne ( Query query ) throws IOException;
 
     GridFSDBFile findById ( String oid ) throws IOException;
+
+    List<GridFSDBFile> findByTag ( String tag ) throws IOException;
+
+    List<GridFSDBFile> findByAllTags ( List<String> tags ) throws IOException;
+
+    List<GridFSDBFile> findByAnyTags ( List<String> tags ) throws IOException;
 }

@@ -17,9 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public final class GridFSServiceImpl implements GridFSService {
@@ -89,6 +87,27 @@ public final class GridFSServiceImpl implements GridFSService {
     @Transactional(readOnly = true)
     public GridFSDBFile findById( String oid ) throws IOException {
         return gridOperations.findOne( new Query().addCriteria( Criteria.where("_id").is( oid ) ) );
+    }
+
+    // retrieve a list of files by tag
+    @Override
+    @Transactional(readOnly = true)
+    public List<GridFSDBFile> findByTag ( String tag ) throws IOException {
+        return this.find(new Query(Criteria.where("metadata.tags").is(tag)));
+    }
+
+    // retrieve a list of files by multiple tags
+    @Override
+    @Transactional(readOnly = true)
+    public List<GridFSDBFile> findByAllTags ( List<String> tags ) throws IOException {
+        return this.find(new Query( Criteria.where("metadata.tags").all(tags)));
+    }
+
+    // retrieve a list of files by multiple tags
+    @Override
+    @Transactional(readOnly = true)
+    public List<GridFSDBFile> findByAnyTags ( List<String> tags ) throws IOException {
+        return this.find(new Query( Criteria.where("metadata.tags").in(tags)));
     }
 
     // check if a file with this name and path already exists

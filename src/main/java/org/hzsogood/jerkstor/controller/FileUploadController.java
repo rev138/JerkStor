@@ -45,8 +45,6 @@ public class FileUploadController {
             metaData.put( "filename", fileName );
             metaData.put( "filepath", filePath );
             metaData.put( "tags", tags.split(","));
-//            String[] tagList = tags.split(",");
-
 
             try {
                 String id = gridFSService.store( file, filePath + "/" + fileName , metaData );
