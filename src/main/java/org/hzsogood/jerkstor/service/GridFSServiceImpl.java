@@ -4,6 +4,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.hzsogood.jerkstor.config.SpringMongoConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -29,24 +30,24 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with a custom name and metadata
     @Override
     @Transactional
-    public String store(MultipartFile file, String name, Hashtable<String, String> metaData) throws IOException {
+    public String store(MultipartFile file, String name, HashMap metaData) throws IOException {
         DBObject metaDataObj = new BasicDBObject();
 
         // Convert the metaData HashMap to a DBObject
         Set<String> keys = metaData.keySet();
 
-        // TODO: drop '_class' key
         for (String key : keys) {
-            metaDataObj.put(key, metaData.get(key));
+            metaDataObj.put( key, metaData.get( key ) );
         }
-        GridFSFile resultFile = gridOperations.store(file.getInputStream(), name, file.getContentType(), metaData);
+
+        GridFSFile resultFile = gridOperations.store(file.getInputStream(), name, file.getContentType(), metaDataObj);
 
         return resultFile.getId().toString();
     }
 
     // store a file with the original name and metadata
     @Override
-    public String store(MultipartFile file, Hashtable<String, String> metaData) throws IOException {
+    public String store(MultipartFile file, HashMap metaData) throws IOException {
         String name = file.getOriginalFilename();
 
         return this.store(file, name, metaData);
@@ -55,7 +56,7 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with a custom name and no metadata
     @Override
     public String store(MultipartFile file, String name) throws IOException {
-        Hashtable<String, String> metaData = new Hashtable<String, String>();
+        HashMap metaData = new HashMap();
 
         return this.store(file, name, metaData);
     }
@@ -63,7 +64,7 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with the original name and no metadata
     @Override
     public String store(MultipartFile file) throws IOException {
-        Hashtable<String, String> metaData = new Hashtable<String, String>();
+        HashMap metaData = new HashMap();
         String name = file.getOriginalFilename();
 
         return this.store(file, name, metaData);
@@ -76,17 +77,36 @@ public final class GridFSServiceImpl implements GridFSService {
         return gridOperations.find( query );
     }
 
-    // retreive one file using an arbitrary query
+    // retrieve one file using an arbitrary query
     @Override
     @Transactional(readOnly = true)
     public GridFSDBFile findOne(Query query) throws IOException {
         return gridOperations.findOne( query );
     }
 
-    // retreive one file by OID
+    // retrieve one file by OID
     @Override
     @Transactional(readOnly = true)
     public GridFSDBFile findById( String oid ) throws IOException {
         return gridOperations.findOne( new Query().addCriteria( Criteria.where("_id").is( oid ) ) );
     }
+
+    // check if a file with this name and path already exists
+    @Transactional(readOnly = true)
+    boolean fileExists ( String fileName, String path ) throws IOException {
+        GridFSDBFile result = gridOperations.findOne(new Query().addCriteria(Criteria.where("filename").is(fileName)).addCriteria(Criteria.where("metadata.path").is(path)));
+
+        return ( result != null );
+    }
+
+    // calculate the md5 hash for the file
+    @Transactional(readOnly = true)
+    String getMD5 ( MultipartFile file ) throws IOException {
+        file.getInputStream().mark(Integer.MAX_VALUE);
+        String md5 = DigestUtils.md5Hex( file.getInputStream() );
+        file.getInputStream().reset();
+
+        return md5;
+    }
 }
+

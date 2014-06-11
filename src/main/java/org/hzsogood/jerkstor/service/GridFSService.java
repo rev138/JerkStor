@@ -5,13 +5,13 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 
 public interface GridFSService {
-    String store ( MultipartFile file, String name, Hashtable<String, String> metaData ) throws IOException;
+    String store ( MultipartFile file, String name, HashMap metaData ) throws IOException;
 
-    String store ( MultipartFile file, Hashtable<String, String> metaData ) throws IOException;
+    String store ( MultipartFile file, HashMap metaData ) throws IOException;
 
     String store ( MultipartFile file, String name ) throws IOException;
 

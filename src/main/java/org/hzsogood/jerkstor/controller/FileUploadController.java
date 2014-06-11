@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 
 @Controller
@@ -24,14 +25,31 @@ public class FileUploadController {
 
     @RequestMapping(value = "/file/upload", method = RequestMethod.POST)
     @ResponseBody
-    public String handleFileUpload(@RequestParam("name") String name, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath) {
+    public String handleFileUpload(@RequestParam("name") String fileName, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath, String permissions, String tags ) {
 
         if (!file.isEmpty()) {
-            try {
-                Hashtable<String, String> metaData = new Hashtable<String, String>();
-                metaData.put( "path", filePath );
+            // set default values
+            if (fileName == null) {
+                fileName = file.getOriginalFilename();
+            }
+            if (permissions == null) {
+                permissions = "0644";
+            }
 
-                String id = gridFSService.store( file, name, metaData );
+            // strip leading/trailing slashes
+            filePath = filePath.replaceAll( "(^/|^\\\\|/$|\\\\$)", "" );
+
+            // add file metadata
+            HashMap<String, Object> metaData = new HashMap<String, Object>();
+            metaData.put( "filepermissions", permissions );
+            metaData.put( "filename", fileName );
+            metaData.put( "filepath", filePath );
+            metaData.put( "tags", tags.split(","));
+//            String[] tagList = tags.split(",");
+
+
+            try {
+                String id = gridFSService.store( file, filePath + "/" + fileName , metaData );
 
                 Hashtable<String, String> result = new Hashtable<String, String>();
                 result.put( "id", id );
@@ -39,12 +57,12 @@ public class FileUploadController {
                 Gson gson = new Gson();
 
                 return gson.toJson( result );
-
-            } catch (Exception e) {
-                return "You failed to upload " + name + " => " + e.getMessage();
+            }
+            catch (Exception e) {
+                return "You failed to upload " + fileName + " => " + e.getMessage();
             }
         } else {
-            return "You failed to upload " + name + " because the file was empty.";
+            return "You failed to upload " + fileName + " because the file was empty.";
         }
     }
 }
