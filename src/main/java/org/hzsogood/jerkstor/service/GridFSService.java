@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public interface GridFSService {
-    String store ( MultipartFile file, String name, HashMap metaData ) throws IOException;
+    String store ( MultipartFile file, String name, HashMap<String, Object> metaData ) throws IOException;
 
-    String store ( MultipartFile file, HashMap metaData ) throws IOException;
+    String store ( MultipartFile file, HashMap<String, Object> metaData ) throws IOException;
 
     String store ( MultipartFile file, String name ) throws IOException;
 
@@ -28,4 +28,8 @@ public interface GridFSService {
     List<GridFSDBFile> findByAllTags ( List<String> tags ) throws IOException;
 
     List<GridFSDBFile> findByAnyTags ( List<String> tags ) throws IOException;
+
+    void delete ( Query query ) throws IOException;
+
+    void deleteById ( String oid ) throws IOException;
 }

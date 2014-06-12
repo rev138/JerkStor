@@ -28,7 +28,7 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with a custom name and metadata
     @Override
     @Transactional
-    public String store(MultipartFile file, String name, HashMap metaData) throws IOException {
+    public String store(MultipartFile file, String name, HashMap<String, Object> metaData) throws IOException {
         DBObject metaDataObj = new BasicDBObject();
 
         // Convert the metaData HashMap to a DBObject
@@ -45,7 +45,7 @@ public final class GridFSServiceImpl implements GridFSService {
 
     // store a file with the original name and metadata
     @Override
-    public String store(MultipartFile file, HashMap metaData) throws IOException {
+    public String store(MultipartFile file, HashMap<String, Object> metaData) throws IOException {
         String name = file.getOriginalFilename();
 
         return this.store(file, name, metaData);
@@ -54,7 +54,7 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with a custom name and no metadata
     @Override
     public String store(MultipartFile file, String name) throws IOException {
-        HashMap metaData = new HashMap();
+        HashMap<String, Object> metaData = new HashMap<String, Object>();
 
         return this.store(file, name, metaData);
     }
@@ -62,7 +62,7 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with the original name and no metadata
     @Override
     public String store(MultipartFile file) throws IOException {
-        HashMap metaData = new HashMap();
+        HashMap<String, Object> metaData = new HashMap<String, Object>();
         String name = file.getOriginalFilename();
 
         return this.store(file, name, metaData);
@@ -108,6 +108,16 @@ public final class GridFSServiceImpl implements GridFSService {
     @Transactional(readOnly = true)
     public List<GridFSDBFile> findByAnyTags ( List<String> tags ) throws IOException {
         return this.find(new Query( Criteria.where("metadata.tags").in(tags)));
+    }
+
+    @Override
+    public void delete(Query query) throws IOException {
+        gridOperations.delete( query );
+    }
+
+    @Override
+    public void deleteById(String oid) throws IOException {
+        this.delete(new Query().addCriteria( Criteria.where("_id").is( oid ) ));
     }
 
     // check if a file with this name and path already exists
