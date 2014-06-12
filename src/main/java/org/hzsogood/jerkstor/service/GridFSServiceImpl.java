@@ -68,7 +68,7 @@ public final class GridFSServiceImpl implements GridFSService {
         return this.store(file, name, metaData);
     }
 
-    // retreive a list of file objects
+    // retrieve a list of file objects
     @Override
     @Transactional(readOnly = true)
     public List<GridFSDBFile> find(Query query) throws IOException {

@@ -11,36 +11,39 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 
 @Controller
 public class FileDeleteController {
     @Autowired
     private GridFSService gridFSService;
 
-    @RequestMapping(value = "/file/delete/{oid}", method = RequestMethod.GET)
+    @RequestMapping(value = "/file/delete/id/{oids}", method = RequestMethod.GET)
     @ResponseBody
-    public String handleFileDelete(@PathVariable("oid") String oid) throws IOException {
+    public String handleFileDeleteByIds(@PathVariable("oids") String oids) throws IOException {
         Hashtable<String, String> result = new Hashtable<String, String>();
 
-        GridFSDBFile file = gridFSService.findById(oid);
+        List<String> oidList = new ArrayList<String>();
+        Collections.addAll(oidList, oids.split(","));
 
-        if( file == null ){
-            result.put("ok", "0");
-            result.put("message", "the file does not exist");
+        try {
+            for (String oid : oidList) {
+                GridFSDBFile file = gridFSService.findById(oid);
+
+                if( file != null ){
+                    gridFSService.deleteById(oid);
+                }
+            }
+            result.put("ok", "1");
         }
-        else {
-            try {
-                gridFSService.deleteById(oid);
-                result.put("ok", "1");
-            }
-            catch (Exception e) {
-                result.put("ok", "0");
-                result.put("message", e.getMessage());
-            }
+        catch (Exception e) {
+            result.put("ok", "0");
+            result.put("message", e.getMessage());
         }
 
         return JSON.serialize(result);
     }
-
 }

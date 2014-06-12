@@ -32,4 +32,5 @@ public interface GridFSService {
     void delete ( Query query ) throws IOException;
 
     void deleteById ( String oid ) throws IOException;
+
 }
