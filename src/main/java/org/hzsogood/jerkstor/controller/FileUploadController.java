@@ -37,7 +37,7 @@ public class FileUploadController {
             }
 
             // strip leading/trailing slashes
-            filePath = filePath.replaceAll( "(^/|^\\\\|/$|\\\\$)", "" );
+            filePath = filePath.replaceAll( "(^/+|^\\\\+|/+$|\\\\+$)", "" );
 
             // add file metadata
             HashMap<String, Object> metaData = new HashMap<String, Object>();
