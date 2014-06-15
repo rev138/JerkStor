@@ -29,8 +29,15 @@ public interface GridFSService {
 
     List<GridFSDBFile> findByAnyTags ( List<String> tags ) throws IOException;
 
+    List<GridFSDBFile> findByPath( String path ) throws IOException;
+
     void delete ( Query query ) throws IOException;
 
     void deleteById ( String oid ) throws IOException;
 
+    void tagFile ( String oid, String tag ) throws IOException;
+
+    void untagFile ( String oid, String tag ) throws IOException;
+
+    void setPath(String oid, String path) throws IOException;
 }

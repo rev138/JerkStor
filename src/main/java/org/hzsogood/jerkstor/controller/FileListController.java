@@ -6,10 +6,7 @@ import org.hzsogood.jerkstor.service.GridFSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +28,7 @@ public class FileListController {
 
     @RequestMapping(value = "/file/list/tags/{tags}", method = RequestMethod.GET)
     @ResponseBody
-    public String handleFileList(@PathVariable("tags") String tags) throws IOException {
+    public String handleFileListTags(@PathVariable("tags") String tags) throws IOException {
         List<String> tagList = new ArrayList<String>();
 
         Collections.addAll(tagList, tags.split(","));
@@ -41,5 +38,10 @@ public class FileListController {
         return JSON.serialize( gridFiles );
     }
 
+    @RequestMapping(value = "/file/list/path", method = RequestMethod.POST)
+    @ResponseBody
+    public String handleFileListPath(@RequestParam("path") String path) throws IOException {
+        return JSON.serialize(gridFSService.findByPath(path));
+    }
 }
 

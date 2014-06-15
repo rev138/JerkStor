@@ -19,6 +19,17 @@ import java.util.Arrays;
 @Configuration
 public class SpringMongoConfig extends AbstractMongoConfiguration {
 
+//    public @Bean
+//    MongoDbFactory mongoDbFactory() throws Exception {
+//        return new SimpleMongoDbFactory(new MongoClient(), "gridtest");
+//    }
+//
+//    public @Bean
+//    MongoTemplate mongoTemplate() throws Exception {
+//
+//        return new MongoTemplate(mongoDbFactory());
+//    }
+
     @Bean
     public GridFsTemplate gridFsTemplate() throws Exception {
         return new GridFsTemplate(mongoDbFactory(), mappingMongoConverter());

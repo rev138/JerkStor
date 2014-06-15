@@ -25,15 +25,12 @@ public class FileUploadController {
 
     @RequestMapping(value = "/file/upload", method = RequestMethod.POST)
     @ResponseBody
-    public String handleFileUpload(@RequestParam("name") String fileName, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath, String permissions, String tags ) {
+    public String handleFileUpload(@RequestParam("name") String fileName, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath, @RequestParam("tags") String tags ) {
 
         if (!file.isEmpty()) {
             // set default values
             if (fileName == null) {
                 fileName = file.getOriginalFilename();
-            }
-            if (permissions == null) {
-                permissions = "0644";
             }
 
             // strip leading/trailing slashes
@@ -41,13 +38,11 @@ public class FileUploadController {
 
             // add file metadata
             HashMap<String, Object> metaData = new HashMap<String, Object>();
-            metaData.put( "filepermissions", permissions );
-            metaData.put( "filename", fileName );
-            metaData.put( "filepath", filePath );
+            metaData.put( "path", filePath );
             metaData.put( "tags", tags.split(","));
 
             try {
-                String id = gridFSService.store( file, filePath + "/" + fileName , metaData );
+                String id = gridFSService.store( file, fileName , metaData );
 
                 Hashtable<String, String> result = new Hashtable<String, String>();
                 result.put( "id", id );
