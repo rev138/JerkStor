@@ -9,7 +9,6 @@ import org.hzsogood.jerkstor.config.SpringMongoConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
@@ -27,7 +26,6 @@ public final class GridFSServiceImpl implements GridFSService {
     @Autowired
     private ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
     private GridFsOperations gridOperations = (GridFsOperations) ctx.getBean("gridFsTemplate");
-    private MongoOperations mongoOperations = (MongoOperations) ctx.getBean("mongoTemplate");
 
     // store a file with a custom name and metadata
     @Override
@@ -115,21 +113,25 @@ public final class GridFSServiceImpl implements GridFSService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GridFSDBFile> findByPath(String path) throws IOException {
         return this.find( new Query( Criteria.where("metadata.path").is(path)));
     }
 
     @Override
+    @Transactional
     public void delete(Query query) throws IOException {
         gridOperations.delete( query );
     }
 
     @Override
+    @Transactional
     public void deleteById(String oid) throws IOException {
         this.delete(new Query().addCriteria( Criteria.where("_id").is( oid ) ));
     }
 
     @Override
+    @Transactional
     public void tagFile(String oid, String tag) throws IOException {
         GridFSDBFile file = this.findById(oid);
         DBObject metaData = file.getMetaData();
@@ -146,6 +148,7 @@ public final class GridFSServiceImpl implements GridFSService {
     }
 
     @Override
+    @Transactional
     public void untagFile(String oid, String tag) throws IOException {
         GridFSDBFile file = this.findById(oid);
         DBObject metaData = file.getMetaData();
@@ -162,6 +165,7 @@ public final class GridFSServiceImpl implements GridFSService {
     }
 
     @Override
+    @Transactional
     public void setPath(String oid, String path) throws IOException {
         GridFSDBFile file = this.findById(oid);
         DBObject metaData = file.getMetaData();
@@ -174,15 +178,23 @@ public final class GridFSServiceImpl implements GridFSService {
         file.save();
     }
 
+    @Override
+    @Transactional
+    public void setName(String oid, String name) throws IOException {
+        GridFSDBFile file = this.findById(oid);
+
+        file.put("filename", name);
+        file.save();
+    }
+
     // check if a file with this name and path already exists
     @Transactional(readOnly = true)
     boolean fileExists ( String fileName, String path ) throws IOException {
-        String result = mongoOperations.findOne(new Query().addCriteria(Criteria.where("filename").is(fileName)).addCriteria(Criteria.where("metadata.path").is(path)), String.class);
-        return ( !result.isEmpty() );
+        GridFSDBFile file = gridOperations.findOne(new Query().addCriteria(Criteria.where("filename").is(fileName)).addCriteria(Criteria.where("metadata.path").is(path)));
+        return (!(file == null));
     }
 
     // calculate the md5 hash for the file
-    @Transactional(readOnly = true)
     String getMD5 ( MultipartFile file ) throws IOException {
         file.getInputStream().mark(Integer.MAX_VALUE);
         String md5 = DigestUtils.md5Hex( file.getInputStream() );

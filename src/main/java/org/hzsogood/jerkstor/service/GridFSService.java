@@ -40,4 +40,6 @@ public interface GridFSService {
     void untagFile ( String oid, String tag ) throws IOException;
 
     void setPath(String oid, String path) throws IOException;
+
+    void setName(String oid, String name) throws IOException;
 }
