@@ -1,17 +1,17 @@
 package org.hzsogood.jerkstor.service;
 
+import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 
 public interface GridFSService {
-    String store ( MultipartFile file, String name, HashMap<String, Object> metaData ) throws IOException;
+    String store ( MultipartFile file, String name, DBObject metaData ) throws IOException;
 
-    String store ( MultipartFile file, HashMap<String, Object> metaData ) throws IOException;
+    String store ( MultipartFile file, DBObject metaData ) throws IOException;
 
     String store ( MultipartFile file, String name ) throws IOException;
 
@@ -20,6 +20,8 @@ public interface GridFSService {
     List<GridFSDBFile> find ( Query query ) throws IOException;
 
     GridFSDBFile findOne ( Query query ) throws IOException;
+
+    GridFSDBFile findOne (String name, String path) throws IOException;
 
     GridFSDBFile findById ( String oid ) throws IOException;
 

@@ -1,5 +1,6 @@
 package org.hzsogood.jerkstor.service;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFSDBFile;
@@ -17,9 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public final class GridFSServiceImpl implements GridFSService {
@@ -30,24 +29,15 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with a custom name and metadata
     @Override
     @Transactional
-    public String store(MultipartFile file, String name, HashMap<String, Object> metaData) throws IOException {
-        DBObject metaDataObj = new BasicDBObject();
-
-        // Convert the metaData HashMap to a DBObject
-        Set<String> keys = metaData.keySet();
-
-        for (String key : keys) {
-            metaDataObj.put( key, metaData.get( key ) );
-        }
-
-        GridFSFile resultFile = gridOperations.store(file.getInputStream(), name, file.getContentType(), metaDataObj);
+    public String store(MultipartFile file, String name, DBObject metaData) throws IOException {
+        GridFSFile resultFile = gridOperations.store(file.getInputStream(), name, file.getContentType(), metaData);
 
         return resultFile.getId().toString();
     }
 
     // store a file with the original name and metadata
     @Override
-    public String store(MultipartFile file, HashMap<String, Object> metaData) throws IOException {
+    public String store(MultipartFile file, DBObject metaData) throws IOException {
         String name = file.getOriginalFilename();
 
         return this.store(file, name, metaData);
@@ -56,7 +46,7 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with a custom name and no metadata
     @Override
     public String store(MultipartFile file, String name) throws IOException {
-        HashMap<String, Object> metaData = new HashMap<String, Object>();
+        DBObject metaData = new BasicDBObject();
 
         return this.store(file, name, metaData);
     }
@@ -64,7 +54,7 @@ public final class GridFSServiceImpl implements GridFSService {
     // store a file with the original name and no metadata
     @Override
     public String store(MultipartFile file) throws IOException {
-        HashMap<String, Object> metaData = new HashMap<String, Object>();
+        DBObject metaData = new BasicDBObject();
         String name = file.getOriginalFilename();
 
         return this.store(file, name, metaData);
@@ -84,6 +74,13 @@ public final class GridFSServiceImpl implements GridFSService {
         return gridOperations.findOne( query );
     }
 
+    // retrieve one file using an arbitrary query
+    @Override
+    @Transactional(readOnly = true)
+    public GridFSDBFile findOne(String name, String path) throws IOException {
+        return this.findOne(new Query(Criteria.where("filename").is(name).and("metadata.path").is(path)));
+    }
+
     // retrieve one file by OID
     @Override
     @Transactional(readOnly = true)
@@ -92,27 +89,23 @@ public final class GridFSServiceImpl implements GridFSService {
     }
 
     // retrieve a list of files by tag
-    @Override
     @Transactional(readOnly = true)
     public List<GridFSDBFile> findByTag ( String tag ) throws IOException {
         return this.find(new Query(Criteria.where("metadata.tags").is(tag)));
     }
 
     // retrieve a list of files by multiple tags
-    @Override
     @Transactional(readOnly = true)
     public List<GridFSDBFile> findByAllTags ( List<String> tags ) throws IOException {
         return this.find(new Query( Criteria.where("metadata.tags").all(tags)));
     }
 
     // retrieve a list of files by multiple tags
-    @Override
     @Transactional(readOnly = true)
     public List<GridFSDBFile> findByAnyTags ( List<String> tags ) throws IOException {
         return this.find(new Query( Criteria.where("metadata.tags").in(tags)));
     }
 
-    @Override
     @Transactional(readOnly = true)
     public List<GridFSDBFile> findByPath(String path) throws IOException {
         return this.find( new Query( Criteria.where("metadata.path").is(path)));
@@ -130,13 +123,12 @@ public final class GridFSServiceImpl implements GridFSService {
         this.delete(new Query().addCriteria( Criteria.where("_id").is( oid ) ));
     }
 
-    @Override
     @Transactional
     public void tagFile(String oid, String tag) throws IOException {
         GridFSDBFile file = this.findById(oid);
         DBObject metaData = file.getMetaData();
 
-        List<String> tags = (List<String>) metaData.get("tags");
+        BasicDBList tags = (BasicDBList) metaData.get("tags");
 
         // only add this tag if it's not already there
         if(!tags.contains(tag)){
@@ -147,13 +139,12 @@ public final class GridFSServiceImpl implements GridFSService {
         }
     }
 
-    @Override
     @Transactional
     public void untagFile(String oid, String tag) throws IOException {
         GridFSDBFile file = this.findById(oid);
         DBObject metaData = file.getMetaData();
 
-        List<String> tags = (List<String>) metaData.get("tags");
+        BasicDBList tags = (BasicDBList) metaData.get("tags");
 
         if(tags.contains(tag)){
             tags.remove(tag);
@@ -164,7 +155,6 @@ public final class GridFSServiceImpl implements GridFSService {
 
     }
 
-    @Override
     @Transactional
     public void setPath(String oid, String path) throws IOException {
         GridFSDBFile file = this.findById(oid);
@@ -178,7 +168,6 @@ public final class GridFSServiceImpl implements GridFSService {
         file.save();
     }
 
-    @Override
     @Transactional
     public void setName(String oid, String name) throws IOException {
         GridFSDBFile file = this.findById(oid);
