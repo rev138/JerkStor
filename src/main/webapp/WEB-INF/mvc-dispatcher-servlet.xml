@@ -2,20 +2,29 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:mongo="http://www.springframework.org/schema/data/mongo"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
 
-    <context:component-scan base-package="org.hzsogood.jerkstor.controller" />
+    <context:component-scan base-package="org.hzsogood.jerkstor" />
 
     <mvc:annotation-driven />
 
-    <bean id="gridFSService"
-          class="org.hzsogood.jerkstor.service.GridFSServiceImpl"/>
+    <mongo:db-factory id="mongoDbFactory" host="localhost" port="27017" dbname="gridtest" username="grid" password="grid" />
+
+    <mongo:mapping-converter id="converter" db-factory-ref="mongoDbFactory"/>
+
+    <bean id="gridTemplate" class="org.springframework.data.mongodb.gridfs.GridFsTemplate">
+        <constructor-arg ref="mongoDbFactory"/>
+        <constructor-arg ref="converter"/>
+    </bean>
+
+    <!--<bean id="gridFSService"-->
+          <!--class="org.hzsogood.jerkstor.service.GridFSServiceImpl"/>-->
 
     <bean class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
 
-    <bean
-            class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping" />
+    <bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping" />
 
     <bean id="multipartResolver"
           class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />

@@ -19,12 +19,18 @@ public class FileDownloadController {
 
     @RequestMapping( value = "/file/download/{oid}", method = RequestMethod.GET)
     @ResponseBody
-    public void handleFileDownload( @PathVariable("oid") String oid, HttpServletResponse response ) throws IOException {
-        GridFSDBFile gridFile = gridFSService.findById( oid );
+    public String handleFileDownload( @PathVariable("oid") String oid, HttpServletResponse response ) throws IOException {
+        try {
+            GridFSDBFile gridFile = gridFSService.findById(oid);
 
-        response.setContentType( gridFile.getContentType() );
-        response.setHeader( "Content-Disposition", "attachment; filename=" + gridFile.getFilename() );
-        gridFile.writeTo( response.getOutputStream() );
-        response.flushBuffer();
+            response.setContentType(gridFile.getContentType());
+            response.setHeader("Content-Disposition", "attachment; filename=" + gridFile.getFilename());
+            gridFile.writeTo(response.getOutputStream());
+            response.flushBuffer();
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
+        return "Foo";
     }
 }

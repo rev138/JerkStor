@@ -7,6 +7,7 @@ import com.mongodb.ServerAddress;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 
 import java.util.Arrays;
@@ -19,10 +20,10 @@ import java.util.Arrays;
 @Configuration
 public class SpringMongoConfig extends AbstractMongoConfiguration {
 
-//    public @Bean
-//    MongoDbFactory mongoDbFactory() throws Exception {
-//        return new SimpleMongoDbFactory(new MongoClient(), "gridtest");
-//    }
+    @Bean
+    public SimpleMongoDbFactory mongoDbFactory() throws Exception {
+        return new SimpleMongoDbFactory(new MongoClient(), "gridtest");
+    }
 //
 //    public @Bean
 //    MongoTemplate mongoTemplate() throws Exception {

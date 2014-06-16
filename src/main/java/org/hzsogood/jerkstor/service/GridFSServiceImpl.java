@@ -6,13 +6,10 @@ import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.hzsogood.jerkstor.config.SpringMongoConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.gridfs.GridFsOperations;
+import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,15 +19,18 @@ import java.util.List;
 
 @Service
 public final class GridFSServiceImpl implements GridFSService {
+//    @Autowired
+//    private ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
+//    private GridFsOperations gridTemplate = (GridFsOperations) ctx.getBean("gridFsTemplate");
+    
     @Autowired
-    private ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
-    private GridFsOperations gridOperations = (GridFsOperations) ctx.getBean("gridFsTemplate");
+    private GridFsTemplate gridTemplate;
 
     // store a file with a custom name and metadata
     @Override
     @Transactional
     public String store(MultipartFile file, String name, DBObject metaData) throws IOException {
-        GridFSFile resultFile = gridOperations.store(file.getInputStream(), name, file.getContentType(), metaData);
+        GridFSFile resultFile = gridTemplate.store(file.getInputStream(), name, file.getContentType(), metaData);
 
         return resultFile.getId().toString();
     }
@@ -64,14 +64,14 @@ public final class GridFSServiceImpl implements GridFSService {
     @Override
     @Transactional(readOnly = true)
     public List<GridFSDBFile> find(Query query) throws IOException {
-        return gridOperations.find( query );
+        return gridTemplate.find( query );
     }
 
     // retrieve one file using an arbitrary query
     @Override
     @Transactional(readOnly = true)
     public GridFSDBFile findOne(Query query) throws IOException {
-        return gridOperations.findOne( query );
+        return gridTemplate.findOne( query );
     }
 
     // retrieve one file using an arbitrary query
@@ -85,7 +85,7 @@ public final class GridFSServiceImpl implements GridFSService {
     @Override
     @Transactional(readOnly = true)
     public GridFSDBFile findById( String oid ) throws IOException {
-        return gridOperations.findOne( new Query().addCriteria( Criteria.where("_id").is( oid ) ) );
+        return gridTemplate.findOne( new Query().addCriteria( Criteria.where("_id").is( oid ) ) );
     }
 
     // retrieve a list of files by tag
@@ -112,9 +112,16 @@ public final class GridFSServiceImpl implements GridFSService {
     }
 
     @Override
+    public List<GridFSDBFile> findByPathRecursive(String path) throws IOException {
+        path = path.replaceAll("/", "\\\\/");
+        DBObject regex = new BasicDBObject("$regex", "^" + path + "/");
+        return this.find( new Query(Criteria.where("metadata.path").is(path).orOperator(Criteria.where("metadata.path").is(regex.toString()))));
+    }
+
+    @Override
     @Transactional
     public void delete(Query query) throws IOException {
-        gridOperations.delete( query );
+        gridTemplate.delete( query );
     }
 
     @Override
@@ -179,7 +186,7 @@ public final class GridFSServiceImpl implements GridFSService {
     // check if a file with this name and path already exists
     @Transactional(readOnly = true)
     boolean fileExists ( String fileName, String path ) throws IOException {
-        GridFSDBFile file = gridOperations.findOne(new Query().addCriteria(Criteria.where("filename").is(fileName)).addCriteria(Criteria.where("metadata.path").is(path)));
+        GridFSDBFile file = gridTemplate.findOne(new Query().addCriteria(Criteria.where("filename").is(fileName)).addCriteria(Criteria.where("metadata.path").is(path)));
         return (!(file == null));
     }
 

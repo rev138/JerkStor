@@ -38,10 +38,13 @@ public class FileListController {
         return JSON.serialize( gridFiles );
     }
 
-    @RequestMapping(value = "/file/list/path", method = RequestMethod.POST)
+    @RequestMapping(value = "/file/list/path/{path}", method = RequestMethod.GET)
     @ResponseBody
-    public String handleFileListPath(@RequestParam("path") String path) throws IOException {
-        return JSON.serialize(gridFSService.findByPath(path));
+    public String handleFileListPath(@PathVariable("path") String path) throws IOException {
+        // forward-slashes in the url are parsed as path parts, so we need to use pipes in the file path, then convert
+        // them back to forward-slashes inside the controller
+        path = path.replaceAll( "\\|", "/" );
+        return JSON.serialize(gridFSService.findByPathRecursive(path));
     }
 }
 

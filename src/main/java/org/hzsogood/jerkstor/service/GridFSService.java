@@ -33,6 +33,8 @@ public interface GridFSService {
 
     List<GridFSDBFile> findByPath( String path ) throws IOException;
 
+    List<GridFSDBFile> findByPathRecursive (String path) throws IOException;
+
     void delete ( Query query ) throws IOException;
 
     void deleteById ( String oid ) throws IOException;
