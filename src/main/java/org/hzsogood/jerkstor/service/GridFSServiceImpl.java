@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Hashtable;
 import java.util.List;
 
 @Service
@@ -181,6 +182,22 @@ public final class GridFSServiceImpl implements GridFSService {
 
         file.put("filename", name);
         file.save();
+    }
+
+    public Hashtable<String, Object> getFileData(GridFSDBFile file) {
+        Hashtable<String, Object> result = new Hashtable<String, Object>();
+
+        result.put("id", file.getId().toString());
+        result.put("filename", file.getFilename());
+        result.put("path", file.getMetaData().get("path"));
+        result.put("content-type", file.getContentType());
+        result.put("bytes", file.getLength());
+        result.put("tags", file.getMetaData().get("tags"));
+        result.put("date", file.getUploadDate().toString());
+        result.put("epoch", file.getUploadDate().getTime());
+        result.put("md5", file.getMD5());
+
+        return result;
     }
 
     // check if a file with this name and path already exists

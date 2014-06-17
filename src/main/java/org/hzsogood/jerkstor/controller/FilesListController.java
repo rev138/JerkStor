@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Controller
-public class FileListController {
+public class FilesListController {
     @Autowired
     private GridFSService gridFSService;
 

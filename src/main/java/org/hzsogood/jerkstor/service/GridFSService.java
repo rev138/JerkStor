@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Hashtable;
 import java.util.List;
 
 public interface GridFSService {
@@ -46,4 +47,6 @@ public interface GridFSService {
     void setPath(String oid, String path) throws IOException;
 
     void setName(String oid, String name) throws IOException;
+
+    Hashtable<String, Object> getFileData(GridFSDBFile file);
 }
