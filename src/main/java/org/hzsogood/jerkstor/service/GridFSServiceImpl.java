@@ -20,12 +20,17 @@ import java.util.List;
 
 @Service
 public final class GridFSServiceImpl implements GridFSService {
-//    @Autowired
-//    private ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringMongoConfig.class);
-//    private GridFsOperations gridTemplate = (GridFsOperations) ctx.getBean("gridFsTemplate");
-    
     @Autowired
     private GridFsTemplate gridTemplate;
+
+    // store a file with a custom name and metadata
+    @Override
+    @Transactional
+    public String store(GridFSDBFile file, String name, DBObject metaData) throws IOException {
+        GridFSFile resultFile = gridTemplate.store(file.getInputStream(), name, file.getContentType(), metaData);
+
+        return resultFile.getId().toString();
+    }
 
     // store a file with a custom name and metadata
     @Override

@@ -10,6 +10,8 @@ import java.util.Hashtable;
 import java.util.List;
 
 public interface GridFSService {
+    String store ( GridFSDBFile file, String name, DBObject metaData ) throws IOException;
+
     String store ( MultipartFile file, String name, DBObject metaData ) throws IOException;
 
     String store ( MultipartFile file, DBObject metaData ) throws IOException;
