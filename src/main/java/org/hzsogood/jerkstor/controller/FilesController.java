@@ -26,9 +26,8 @@ public class FilesController {
     // upload a file
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST)
-    public Hashtable<String, String> uploadFile(@RequestParam("name") String fileName, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath, @RequestParam("tags") String tags, HttpServletRequest request, HttpServletResponse response) {
-
-        Hashtable<String, String> result = new Hashtable<String, String>();
+    public Hashtable<String, Object> uploadFile(@RequestParam("name") String fileName, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath, @RequestParam("tags") String tags, HttpServletRequest request, HttpServletResponse response) {
+        Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         if (!file.isEmpty()) {
             // set default values
@@ -69,11 +68,7 @@ public class FilesController {
                 response.setStatus(HttpServletResponse.SC_CREATED);
                 response.setHeader("Location", request.getRequestURI() + "/" + id);
                 result.put("id", id);
-            }
-            catch (Exception e) {
-                result.put("error", "You failed to upload " + fileName + " => " + e.getMessage() );
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
+            } catch (Exception e) { this.internalServerError(result, response, e); }
 
         } else {
             result.put("error", "You failed to upload " + fileName + " because the file was empty." );
@@ -92,10 +87,7 @@ public class FilesController {
         try {
             List<GridFSDBFile> files = gridFSService.find(new Query());
 
-            if(files == null || files.isEmpty()){
-                result.put("error", "File not found");
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            if(files == null || files.isEmpty()){ this.fileNotFound(result, response); }
             else {
                 List<Hashtable<String,Object>> fileList = new ArrayList<Hashtable<String,Object>>();
                 for(GridFSDBFile g : files){
@@ -103,11 +95,7 @@ public class FilesController {
                 }
                 return fileList;
             }
-        }
-        catch (Exception e) {
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e) { this.internalServerError(result, response, e); }
 
         return result;
     }
@@ -120,44 +108,30 @@ public class FilesController {
 
         try {
             GridFSDBFile file = gridFSService.findById(id);
-            if(file == null){
-                result.put("error", "File not found");
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            if(file == null){ this.fileNotFound(result, response); }
             else {
                 result = gridFSService.getFileData(file);
             }
-        }
-        catch (Exception e){
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e){ this.internalServerError(result, response, e); }
 
         return result;
     }
 
     // delete a file
     @ResponseBody
-    @RequestMapping(value="/{id}", method=RequestMethod.DELETE)
-    public Hashtable<String, String> deleteFile(@PathVariable("id") String id, HttpServletResponse response) {
-        Hashtable<String, String> result = new Hashtable<String, String>();
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public Hashtable<String, Object> deleteFile(@PathVariable("id") String id, HttpServletResponse response) {
+        Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
             GridFSDBFile file = gridFSService.findById(id);
 
-            if (file == null) {
-                result.put("error", "File not found");
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            if (file == null) { this.fileNotFound(result, response); }
             else {
                 result.put("id", id);
                 gridFSService.deleteById(id);
             }
-        }
-        catch (Exception e) {
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e) { this.internalServerError(result, response, e); }
 
         return result;
     }
@@ -171,10 +145,7 @@ public class FilesController {
         try {
             GridFSDBFile file = gridFSService.findById(id);
 
-            if (file == null) {
-                result.put("error", "File not found");
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            if (file == null) { this.fileNotFound(result, response); }
             else {
                 // see if a file with that name and path exists already
                 GridFSDBFile checkFile = gridFSService.findOne(new Query(Criteria.where("filename").is(name).andOperator(Criteria.where("metadata.path").is(file.getMetaData().get("path")))));
@@ -190,11 +161,7 @@ public class FilesController {
                     response.setStatus(HttpServletResponse.SC_CONFLICT);
                 }
             }
-        }
-        catch (IOException e) {
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (IOException e) { this.internalServerError(result, response, e); }
 
         return result;
     }
@@ -208,10 +175,7 @@ public class FilesController {
         try {
             GridFSDBFile file = gridFSService.findById(id);
 
-            if (file == null) {
-                result.put("error", "File not found");
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            if (file == null) { this.fileNotFound(result, response); }
             else {
                 // see if a file with that name and path exists already
                 GridFSDBFile checkFile = gridFSService.findOne(new Query(Criteria.where("filename").is(file.getFilename()).andOperator(Criteria.where("metadata.path").is(path))));
@@ -231,11 +195,7 @@ public class FilesController {
                     response.setStatus(HttpServletResponse.SC_CONFLICT);
                 }
             }
-        }
-        catch (IOException e) {
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (IOException e) { this.internalServerError(result, response, e); }
 
         return result;
     }
@@ -249,10 +209,7 @@ public class FilesController {
         try {
             GridFSDBFile file = gridFSService.findById(id);
 
-            if (file == null) {
-                result.put("error", "File not found");
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            if (file == null) { this.fileNotFound(result, response); }
             else {
                 // see if a file with the new name and path exists already
                 GridFSDBFile checkFile = gridFSService.findOne(new Query(Criteria.where("filename").is(filename).andOperator(Criteria.where("metadata.path").is(path))));
@@ -272,11 +229,7 @@ public class FilesController {
                     response.setStatus(HttpServletResponse.SC_CONFLICT);
                 }
             }
-        }
-        catch (IOException e) {
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (IOException e) { this.internalServerError(result, response, e); }
 
         return result;
     }
@@ -304,20 +257,13 @@ public class FilesController {
 
                 GridFSDBFile file = gridFSService.findById(id);
 
-                if(file == null){
-                    result.put("error", "File not found");
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                }
+                if(file == null){ this.fileNotFound(result, response); }
                 else {
                     result.put("id", file.getId().toString());
                     result.put("tags", file.getMetaData().get("tags"));
                 }
             }
-        }
-        catch (Exception e){
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e){ this.internalServerError(result, response, e); }
 
         return result;
     }
@@ -331,10 +277,7 @@ public class FilesController {
         try {
             GridFSDBFile file = gridFSService.findById(id);
 
-            if(file == null){
-                result.put("error", "File not found");
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            if(file == null){ this.fileNotFound(result, response); }
             else {
                 DBObject metaData = file.getMetaData();
 
@@ -345,11 +288,7 @@ public class FilesController {
                 result.put("id", file.getId().toString());
                 result.put("tags", file.getMetaData().get("tags"));
             }
-        }
-        catch (Exception e){
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e){ this.internalServerError(result, response, e); }
 
         return result;
     }
@@ -371,21 +310,20 @@ public class FilesController {
                 files = new ArrayList<GridFSDBFile>();
             } else {
                 List<Hashtable<String, Object>> fileList = new ArrayList<Hashtable<String, Object>>();
+
                 for (GridFSDBFile g : files) {
                     fileList.add(gridFSService.getFileData(g));
                 }
+
                 return fileList;
             }
-        } catch (Exception e) {
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e) { this.internalServerError(result, response, e); }
 
         return result;
     }
 
-    @RequestMapping(value = "/path/{path}", method = RequestMethod.GET)
     @ResponseBody
+    @RequestMapping(value = "/path/{path}", method = RequestMethod.GET)
     public Object findByPath(@PathVariable("path") String path, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
@@ -401,47 +339,45 @@ public class FilesController {
             }
             else{
                 List<Hashtable<String, Object>> fileList = new ArrayList<Hashtable<String, Object>>();
+
                 for (GridFSDBFile g : files) {
                     fileList.add(gridFSService.getFileData(g));
                 }
                 return fileList;
             }
-        }
-        catch (Exception e) {
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e) { this.internalServerError(result, response, e); }
 
         return result;
     }
 
-
-
     // download a file
     @ResponseBody
     @RequestMapping(value="/{id}/download", method=RequestMethod.GET)
-    public Hashtable<String, String> downloadFile(@PathVariable("id") String id, HttpServletResponse response) {
-        Hashtable<String, String> result = new Hashtable<String, String>();
+    public Hashtable<String, Object> downloadFile(@PathVariable("id") String id, HttpServletResponse response) {
+        Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
             GridFSDBFile file = gridFSService.findById(id);
 
-            if(file == null){
-                result.put("error", "File not found");
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
+            if(file == null){ this.fileNotFound(result, response); }
             else {
                 response.setContentType(file.getContentType());
                 response.setHeader("Content-Disposition", "attachment; filename=" + file.getFilename());
                 file.writeTo(response.getOutputStream());
                 response.flushBuffer();
             }
-        }
-        catch (Exception e) {
-            result.put("error", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        } catch (Exception e) { this.internalServerError(result, response, e); }
 
         return result;
+    }
+
+    void internalServerError (Hashtable<String, Object> result, HttpServletResponse response, Exception e) {
+        result.put("error", e.getMessage());
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    }
+
+    void fileNotFound (Hashtable<String, Object> result, HttpServletResponse response) {
+        result.put("error", "File not found");
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
     }
 }
