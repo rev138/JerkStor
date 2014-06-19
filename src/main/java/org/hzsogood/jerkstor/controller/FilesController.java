@@ -28,15 +28,16 @@ public class FilesController {
     @RequestMapping(method = RequestMethod.POST)
     public Hashtable<String, Object> uploadFile(@RequestParam("name") String fileName, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath, @RequestParam("tags") String tags, HttpServletRequest request, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
-
+        
         if (!file.isEmpty()) {
             // set default values
             if (fileName == null) {
                 fileName = file.getOriginalFilename();
             }
+
             // strip leading/trailing slashes
             filePath = filePath.replaceAll( "(^/+|^\\\\+|/+$|\\\\+$)", "" );
-
+            // separate tags
             ArrayList<String> tagList = new ArrayList<String>(Arrays.asList(tags.split(",")));
 
             try {
@@ -66,7 +67,7 @@ public class FilesController {
                 }
 
                 response.setStatus(HttpServletResponse.SC_CREATED);
-                response.setHeader("Location", request.getRequestURI() + "/" + id);
+                response.setHeader("Location", request.getRequestURL() + "/" + id);
                 result.put("id", id);
             } catch (Exception e) { this.internalServerError(result, response, e); }
 
