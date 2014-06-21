@@ -26,9 +26,9 @@ public class FilesController {
     // upload a file
     @ResponseBody
     @RequestMapping(method = RequestMethod.POST)
-    public Hashtable<String, Object> uploadFile(@RequestParam("name") String fileName, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath, @RequestParam("tags") String tags, HttpServletRequest request, HttpServletResponse response) {
+    public Hashtable<String, Object> filesUploadFile(@RequestParam("name") String fileName, @RequestParam("file") MultipartFile file, @RequestParam("path") String filePath, @RequestParam("tags") String tags, HttpServletRequest request, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
-        
+
         if (!file.isEmpty()) {
             // set default values
             if (fileName == null) {
@@ -82,7 +82,7 @@ public class FilesController {
     // get all files' metadata
     @ResponseBody
     @RequestMapping(method = RequestMethod.GET)
-    public Object getAllFiles(HttpServletResponse response) {
+    public Object filesGetAllFiles(HttpServletRequest request, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -104,7 +104,7 @@ public class FilesController {
     // get one file's metadata
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public Hashtable<String, Object> getFile(@PathVariable("id") String id, HttpServletResponse response) {
+    public Hashtable<String, Object> filesGetFile(@PathVariable("id") String id, HttpServletRequest request, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -121,7 +121,7 @@ public class FilesController {
     // delete a file
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public Hashtable<String, Object> deleteFile(@PathVariable("id") String id, HttpServletResponse response) {
+    public Hashtable<String, Object> filesDeleteFile(@PathVariable("id") String id, HttpServletRequest request, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -140,7 +140,7 @@ public class FilesController {
     // rename a file
     @ResponseBody
     @RequestMapping(value = "/{id}/rename", method = RequestMethod.PUT)
-    public Hashtable<String, Object> renameFile(@PathVariable("id") String id, @RequestBody String name, HttpServletResponse response){
+    public Hashtable<String, Object> filesRenameFile(@PathVariable("id") String id, @RequestBody String name, HttpServletRequest request, HttpServletResponse response){
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -170,7 +170,7 @@ public class FilesController {
     // move a file
     @ResponseBody
     @RequestMapping(value = "/{id}/move", method = RequestMethod.PUT)
-    public Hashtable<String, Object> moveFile(@PathVariable("id") String id, @RequestBody String path, HttpServletResponse response){
+    public Hashtable<String, Object> filesMoveFile(@PathVariable("id") String id, @RequestBody String path, HttpServletRequest request, HttpServletResponse response){
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -204,7 +204,7 @@ public class FilesController {
     // copy a file
     @ResponseBody
     @RequestMapping(value = "/{id}/copy", method = RequestMethod.POST)
-    public Hashtable<String, Object> copyFile(@PathVariable("id") String id, @RequestParam("filename") String filename, @RequestParam("path") String path, HttpServletResponse response){
+    public Hashtable<String, Object> filesCopyFile(@PathVariable("id") String id, @RequestParam("filename") String filename, @RequestParam("path") String path, HttpServletRequest request, HttpServletResponse response){
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -238,7 +238,7 @@ public class FilesController {
     // add or remove tags from a file
     @ResponseBody
     @RequestMapping(value = "/{id}/tags", method = RequestMethod.PUT)
-    public Hashtable<String,Object> modifyTags(@PathVariable("id") String id, @RequestBody String tags, HttpServletResponse response ){
+    public Hashtable<String,Object> filesModifyTags(@PathVariable("id") String id, @RequestBody String tags, HttpServletRequest request, HttpServletResponse response ){
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -272,7 +272,7 @@ public class FilesController {
     // clear all tags from a file
     @ResponseBody
     @RequestMapping(value = "/{id}/tags", method = RequestMethod.DELETE)
-    public Hashtable<String,Object> clearTags(@PathVariable("id") String id, HttpServletResponse response ){
+    public Hashtable<String,Object> filesClearTags(@PathVariable("id") String id, HttpServletRequest request, HttpServletResponse response ){
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -297,7 +297,7 @@ public class FilesController {
     // find all files matching a comma-separated list of tags
     @ResponseBody
     @RequestMapping(value = "/tags/{tags}", method = RequestMethod.GET)
-    public Object findTags(@PathVariable("tags") String tags, HttpServletResponse response) {
+    public Object filesFindTags(@PathVariable("tags") String tags, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
@@ -325,7 +325,7 @@ public class FilesController {
 
     @ResponseBody
     @RequestMapping(value = "/path/{path}", method = RequestMethod.GET)
-    public Object findByPath(@PathVariable("path") String path, HttpServletResponse response) {
+    public Object filesFindByPath(@PathVariable("path") String path, HttpServletRequest request, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         // forward-slashes in the url are parsed as path parts, so we need to use pipes in the file path, then convert
@@ -354,7 +354,7 @@ public class FilesController {
     // download a file
     @ResponseBody
     @RequestMapping(value="/{id}/download", method=RequestMethod.GET)
-    public Hashtable<String, Object> downloadFile(@PathVariable("id") String id, HttpServletResponse response) {
+    public Hashtable<String, Object> filesDownloadFile(@PathVariable("id") String id, HttpServletRequest request, HttpServletResponse response) {
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         try {
