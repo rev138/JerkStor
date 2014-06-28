@@ -1,4 +1,4 @@
-package org.hzsogood.jerkstor.controller;
+package org.hzsogood.jerkstor.controller.api;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Controller
-@RequestMapping(value="/files")
+@RequestMapping(value="/api/files")
 public class FilesController {
     @Autowired
     private GridFSService gridFSService;

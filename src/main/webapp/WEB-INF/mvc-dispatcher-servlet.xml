@@ -25,6 +25,11 @@
         <constructor-arg ref="converter"/>
     </bean>
 
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg ref="mongoDbFactory"/>
+        <constructor-arg ref="converter"/>
+    </bean>
+
     <bean class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
 
     <bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping" />
