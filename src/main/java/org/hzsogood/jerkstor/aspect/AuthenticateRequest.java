@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.hzsogood.jerkstor.model.KeyPair;
 import org.hzsogood.jerkstor.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -26,8 +27,16 @@ class AuthenticateRequest {
     @Autowired
     private MongoTemplate mongoOperations;
 
+    @Value("${api.authentication.enabled}")
+    private boolean authenticationEnabled;
+
     @Around("execution(* org.hzsogood.jerkstor.controller.api..*(..)) && args(..,request,response)")
     public Object authenticateFilesMethods(ProceedingJoinPoint joinPoint, HttpServletRequest request, HttpServletResponse response) throws Throwable {
+        // bypass if api auth is disabled
+        if(!authenticationEnabled){
+            return joinPoint.proceed();
+        }
+
         Hashtable<String, Object> result = new Hashtable<String, Object>();
 
         if (request.getHeader("authorization") == null || request.getHeader("timestamp") == null) {
@@ -37,6 +46,7 @@ class AuthenticateRequest {
         else {
             String authHeader = request.getHeader("authorization");
 
+            // strip whitespace
             authHeader = authHeader.replaceAll("\\s+", "");
 
             String[] credentials = authHeader.split(":", 2);
@@ -50,16 +60,6 @@ class AuthenticateRequest {
                 if(secret != null) {
                     serverSignature = this.signRequest(request, secret);
                 }
-
-//                System.out.println("client: " + clientSignature);
-//                System.out.println("server: " + serverSignature);
-//                System.out.println();
-
-//                User user = new User("terd", "merdwfrgqrew");
-//                mongoOperations.save(user);
-//
-//                KeyPair keyPair = new KeyPair(user.getId(), new Date(System.currentTimeMillis() + 7776000000L));
-//                mongoOperations.save(keyPair);
 
                 if (serverSignature != null && serverSignature.equals(clientSignature)) {
                     // allow the intercepted method to proceed

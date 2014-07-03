@@ -1,0 +1,7 @@
+api.authentication.enabled=false
+
+mongoDB.host=localhost
+mongoDB.port=27017
+mongoDB.username=jerkstor
+mongoDB.password=jerkstor
+mongoDB.dbname=jerkstor

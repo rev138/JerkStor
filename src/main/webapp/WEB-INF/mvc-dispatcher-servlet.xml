@@ -9,11 +9,13 @@
 
     <context:component-scan base-package="org.hzsogood.jerkstor" />
 
+    <context:property-placeholder location='jerkstor.properties'/>
+
     <mvc:annotation-driven />
 
     <aop:aspectj-autoproxy />
 
-    <mongo:db-factory id="mongoDbFactory" host="localhost" port="27017" dbname="gridtest" username="grid" password="grid" />
+    <mongo:db-factory id="mongoDbFactory" host='${mongoDB.host}' port='${mongoDB.port}' dbname='${mongoDB.dbname}' username='${mongoDB.username}' password='${mongoDB.password}' />
 
     <mongo:mapping-converter id="converter" db-factory-ref="mongoDbFactory"/>
 
@@ -36,12 +38,6 @@
 
     <bean id="multipartResolver"
           class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
-
-    <!-- Register the Customer.properties -->
-    <bean id="messageSource"
-          class="org.springframework.context.support.ResourceBundleMessageSource">
-        <property name="basename" value="message" />
-    </bean>
 
     <bean id="viewResolver"
           class="org.springframework.web.servlet.view.InternalResourceViewResolver">
